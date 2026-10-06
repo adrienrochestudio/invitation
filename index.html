@@ -49,6 +49,7 @@ body{
 }
 .addr-name{color:var(--ink); font-size:calc(var(--env-h)*.2); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transform:rotate(-1.5deg); margin-bottom:.15em}
 .addr-line{color:var(--ink); font-size:calc(var(--env-h)*.105); line-height:1.2; opacity:.92}
+.addr-line.small{font-size:calc(var(--env-h)*.066); opacity:.78; margin-top:.25em}
 .addr-line:nth-child(odd){transform:rotate(-.6deg)} .addr-line:nth-child(even){transform:rotate(.5deg) translateX(.3em)}
 .side-flap{position:absolute; inset:0; transform-style:preserve-3d; transform:rotateY(180deg)}
 .inner{
@@ -139,7 +140,7 @@ const INVITATION = {
   defaults: {n:'Ana', nom:'Lara', g:'f'},
   envelopePrefix: 'Pour',
   envelopeDefault: 'toi',
-  envelopeLines: ['Le placard sous l\'escalier', '(c\'est la faute des loyers, merci la France à Macron)'],
+  envelopeLines: [{t:'Le placard sous l\'escalier'}, {t:'(c\'est la faute des loyers, merci la France à Macron)', small:true}],
   // Jetons : {cher} {civ} {nom} {prenom} {e} {sorcier}
   letter: [
     {type:'school', text:'École de magie des Buttes-Chaumont'},
@@ -249,7 +250,7 @@ const bg = document.createElement('canvas'), bgCtx = bg.getContext('2d');
 
 let W, H, ph, EW, EH, dpr, SW, SH, cx, cy, finalY;
 let layout = [], totalChars = 0, curChars = 0, state = 'boot', flyTl = null, floatTw = null, writeTw = null;
-let tilePaper, tileIn, sigBox = null, readOnce = false, TOKENS = {};
+let tilePaper, tileIn, sigBox = null, readOnce = false, TOKENS = {}, blots = [];
 
 /* ===== Mise en page ===== */
 function wrapText(ctx, text, maxW){
@@ -345,8 +346,7 @@ function paintBg(){
     c.fillStyle = 'rgba(90,60,25,.12)'; c.fillRect(0, y - 1.5, W, 1.5);
     c.fillStyle = 'rgba(255,250,235,.28)'; c.fillRect(0, y, W, 1);
   }
-  inkBlot(c, W*.9, H*.07, W*.016, 3);
-  inkBlot(c, W*.06, H*.62, W*.011, 8);
+
 }
 
 function paint(chars){
@@ -367,6 +367,7 @@ function paint(chars){
     }
   }
   c.globalAlpha = 1;
+  for (const b of blots) if (chars >= b.at) inkBlot(c, b.x, b.y, b.r, b.seed);
   const h3 = off.height/3;
   canv.forEach((cv, i) => { const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.drawImage(off, 0, i*h3, off.width, h3, 0, 0, cv.width, cv.height); });
 }
@@ -382,6 +383,11 @@ function applyLayout(){
   ph = Math.ceil(h/3); H = ph*3;
   letter.dataset.body = (W*.064*sc).toFixed(1);
   layout = L.items; sigBox = L.sig; totalChars = layout.reduce((a, i) => a + i.text.length, 0);
+  let acc = 0; const cum = layout.map(it => (acc += it.text.length));
+  blots = [{x:W*.9, y:H*.07, r:W*.016, seed:3}, {x:W*.06, y:H*.62, r:W*.011, seed:8}].map(b => {
+    let k = layout.findIndex(it => it.y >= b.y); if (k < 0) k = layout.length - 1;
+    return Object.assign(b, {at:cum[k] - Math.floor(layout[k].text.length/2)});
+  });
   EW = Math.round(W*1.06); EH = Math.round(ph*1.16);
   cx = SW/2; cy = SH/2; finalY = 0;
   const rs = document.documentElement.style;
@@ -599,7 +605,7 @@ async function boot(){
   TOKENS = {prenom:name || '', nom, civ:g === 'f' ? 'Madame' : 'Monsieur', cher:g === 'f' ? 'Chère' : 'Cher', e:g === 'f' ? 'e' : '', sorcier:g === 'f' ? 'sorcière' : 'sorcier'};
   $('addrName').textContent = INVITATION.envelopePrefix + ' ' + (name || INVITATION.envelopeDefault);
   const al = $('addrLines');
-  for (const l of INVITATION.envelopeLines){ const d = document.createElement('div'); d.className = 'addr-line'; d.textContent = l; al.appendChild(d); }
+  for (const l of INVITATION.envelopeLines){ const d = document.createElement('div'); d.className = 'addr-line' + (l.small ? ' small' : ''); d.textContent = l.t; al.appendChild(d); }
   sealL.innerHTML = sealSVG('L', ini); sealR.innerHTML = sealSVG('R', ini);
   tilePaper = makeTile([231, 214, 176], 7); tileIn = makeTile([205, 180, 135], 19);
   const rs = document.documentElement.style;
