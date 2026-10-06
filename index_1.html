@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17110c">
+<title>Une lettre pour toi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cedarville+Cursive&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+:root{
+  --night:#17110c; --paper:#e7d6b0; --paper-in:#cdb487;
+  --ink:#5b1f1a; --font:"Cedarville Cursive", "Snell Roundhand", "Apple Chancery", cursive; --wax:#7f1717; --wax-hi:#a8312a;
+  --env-w:300px; --env-h:180px;
+  --tile:none; --tile-in:none;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --night:#17110c; } }
+:root[data-theme="dark"]{ --night:#17110c; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{
+  background:var(--night); overflow:hidden; color:var(--paper);
+  font-family:var(--font);
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  -webkit-user-select:none; user-select:none;
+}
+#scene{
+  position:relative; width:100%; height:100%; overflow:hidden;
+  background:radial-gradient(ellipse 70% 60% at 50% 46%, #3b2a1a 0%, #24190f 48%, #110c08 100%);
+}
+.wrap{position:absolute; inset:0; display:grid; place-items:center; perspective:1300px; pointer-events:none}
+
+/* Enveloppe */
+.env{position:relative; width:var(--env-w); height:var(--env-h); transform-style:preserve-3d; pointer-events:auto; cursor:pointer; opacity:0; outline:none}
+.env:focus-visible .side-address{box-shadow:0 0 0 3px var(--paper), 0 18px 40px rgba(0,0,0,.55)}
+.face,.bf{backface-visibility:hidden; -webkit-backface-visibility:hidden}
+.face{position:absolute; inset:0}
+.paper{background-color:var(--paper); background-image:var(--tile); background-size:256px 256px}
+.side-address{
+  border-radius:3px; display:flex; flex-direction:column; justify-content:center; padding:0 11%;
+  box-shadow:inset 0 0 26px rgba(110,70,25,.38), 0 18px 40px rgba(0,0,0,.55);
+  transform:translateZ(.5px);
+}
+.addr-name{color:var(--ink); font-size:calc(var(--env-h)*.2); line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transform:rotate(-1.5deg); margin-bottom:.15em}
+.addr-line{color:var(--ink); font-size:calc(var(--env-h)*.105); line-height:1.2; opacity:.92}
+.addr-line:nth-child(odd){transform:rotate(-.6deg)} .addr-line:nth-child(even){transform:rotate(.5deg) translateX(.3em)}
+.side-flap{position:absolute; inset:0; transform-style:preserve-3d; transform:rotateY(180deg)}
+.inner{
+  background-color:var(--paper-in); background-image:var(--tile-in); background-size:256px 256px;
+  border-radius:3px; box-shadow:inset 0 0 34px rgba(60,35,10,.55), 0 18px 40px rgba(0,0,0,.55);
+}
+.pocket{position:absolute; inset:0; transform:translateZ(1px)}
+.tri{position:absolute; inset:0; filter:drop-shadow(0 -1px 1.5px rgba(60,35,10,.4))}
+.tri > div{position:absolute; inset:0}
+.tri.l > div{clip-path:polygon(0 0,50% 54.5%,0 100%); background-image:linear-gradient(90deg,rgba(255,250,232,.12),rgba(90,58,22,.12)),var(--tile)}
+.tri.r > div{clip-path:polygon(100% 0,50% 54.5%,100% 100%); background-image:linear-gradient(270deg,rgba(255,250,232,.06),rgba(90,58,22,.16)),var(--tile)}
+.tri.b > div{clip-path:polygon(0 100%,50% 47%,100% 100%); background-image:linear-gradient(0deg,rgba(90,58,22,.08),rgba(255,250,232,.14)),var(--tile)}
+.tri > div{background-color:var(--paper); background-size:auto,256px 256px; border-radius:3px}
+.flap{position:absolute; left:0; top:0; width:100%; height:62%; transform-origin:50% 0; transform-style:preserve-3d; transform:translateZ(2px)}
+.f-out,.f-in{position:absolute; inset:0}
+.f-out{filter:drop-shadow(0 2px 2px rgba(60,35,10,.45))}
+.f-out > div{position:absolute; inset:0; clip-path:polygon(0 0,100% 0,52.5% 97%,50% 100%,47.5% 97%); background-color:var(--paper); background-image:linear-gradient(180deg,rgba(255,250,232,.10),rgba(90,58,22,.10)),var(--tile); background-size:auto,256px 256px}
+.f-in{transform:rotateX(180deg); opacity:0}
+.f-in > div{position:absolute; inset:0; clip-path:polygon(0 100%,100% 100%,50% 0); background-color:var(--paper-in); background-image:var(--tile-in); background-size:256px 256px}
+.seal{position:absolute; left:50%; top:72%; width:calc(var(--env-h)*.34); aspect-ratio:1; transform:translate(-50%,-50%) translateZ(1px)}
+.seal > div{position:absolute; inset:0; filter:drop-shadow(0 2px 2px rgba(40,10,5,.5))}
+.seal > div svg{display:block; width:100%; height:100%}
+#sealL{clip-path:polygon(0 0,53% 0,46% 28%,56% 47%,44% 66%,52% 100%,0 100%)}
+#sealR{clip-path:polygon(53% 0,100% 0,100% 100%,52% 100%,44% 66%,56% 47%,46% 28%)}
+
+/* Lettre */
+.letter{position:relative; transform-style:preserve-3d; opacity:0; pointer-events:none}
+.panel{position:absolute; left:0; width:100%; transform-style:preserve-3d}
+.panel canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+.panel .back{position:absolute; inset:0; transform:rotateX(180deg); box-shadow:inset 0 0 22px rgba(110,70,25,.35)}
+.p0{transform-origin:50% 100%}
+.p2{transform-origin:50% 0}
+.lshadow{position:absolute; left:0; width:100%; box-shadow:0 22px 50px rgba(0,0,0,.6), 0 4px 10px rgba(0,0,0,.35); transform:translateZ(-1px)}
+
+/* Interface */
+.sig{position:absolute; transform:translateZ(3px); background:transparent; border:0; padding:0; margin:0; cursor:pointer; pointer-events:none; border-radius:4px}
+.sig:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+#fx{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:4}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="scene">
+  <div class="wrap" id="envWrap">
+    <div class="env" id="env" role="button" tabindex="0" aria-label="Ouvrir l'enveloppe">
+      <div class="face side-address paper">
+        <div class="addr-name" id="addrName">Pour toi</div>
+        <div id="addrLines"></div>
+      </div>
+      <div class="side-flap">
+        <div class="face inner"></div>
+        <div class="pocket bf">
+          <div class="tri l"><div></div></div>
+          <div class="tri r"><div></div></div>
+          <div class="tri b"><div></div></div>
+        </div>
+        <div class="flap" id="flap">
+          <div class="f-out bf"><div></div></div>
+          <div class="f-in bf" id="flapIn"><div></div></div>
+          <div class="seal bf"><div id="sealL"></div><div id="sealR"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap" id="letterWrap">
+    <div class="letter" id="letter" aria-hidden="true">
+      <div class="lshadow" id="lshadow"></div>
+      <div class="panel p0" id="p0"><canvas class="bf"></canvas><div class="back paper bf"></div></div>
+      <div class="panel p1" id="p1"><canvas class="bf"></canvas><div class="back paper bf"></div></div>
+      <div class="panel p2" id="p2"><canvas class="bf"></canvas><div class="back paper bf"></div></div>
+      <button class="sig" id="sig" type="button" aria-label="Méfait accompli"></button>
+    </div>
+  </div>
+
+  <div class="sr" id="sr" aria-live="polite"></div>
+</div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<noscript><p style="padding:2rem;color:#e7d6b0">Cette invitation a besoin de JavaScript pour s'ouvrir.</p></noscript>
+
+<script>
+(() => {
+'use strict';
+
+/* ===== Contenu : à remplacer par le texte final ===== */
+const INVITATION = {
+  // Valeurs utilisées quand le lien ne contient pas de paramètres (phase de test). Vider avant l'envoi.
+  defaults: {n:'Ana', nom:'Lara', g:'f'},
+  envelopePrefix: 'Pour',
+  envelopeDefault: 'toi',
+  envelopeLines: ['Le placard sous l\'escalier', '(c\'est la faute des loyers, merci la France à Macron)'],
+  // Jetons : {cher} {civ} {nom} {prenom} {e} {sorcier}
+  letter: [
+    {type:'school', text:'École de magie des Buttes-Chaumont'},
+    {type:'director', text:'Directeur : Adrien Roche, dit Brûlecasserol'},
+    {type:'titles', text:"Grand Touilleur de Chaudrons, Bey des Formules Oubliées, Lord High Grimoire, Docteur en Potions non diplômé, Avocat plaidant des Hiboux en retard, Chevalier de l'Ordre du Chaudron Percé (deuxième classe), Prince héritier des Buttes et Président à vie de lui-même"},
+    {type:'salut', text:'{cher} {civ} {nom},'},
+    {type:'p', text:"Nous avons le plaisir de vous informer que vous êtes admis{e} au dîner de l'École de magie des Buttes-Chaumont."},
+    {type:'p', text:'Vous trouverez ci-dessous la liste des fournitures nécessaires.'},
+    {type:'sub', text:'Liste des fournitures'},
+    {type:'item', text:"Une potion pour le cours de potions : jus de fruits, gin, vodka ou tout autre ingrédient qui se mélange en cocktail. Ni vin, ni bière."},
+    {type:'item', text:"Aucune autre fourniture n'est requise."},
+    {type:'p', text:'Votre soirée devra être entièrement libre.'},
+    {type:'p', text:'Venez si possible en tenue de {sorcier} : elle est fortement recommandée.'},
+    {type:'p', text:'Le dîner aura lieu le 23 octobre à 19 h, au 103 avenue Simon Bolivar, 75019 Paris.'},
+    {type:'closing', text:"Veuillez croire, {civ}, à l'assurance de nos sentiments distingués."},
+    {type:'signature', text:'Adrien Roche'},
+    {type:'role', text:'Directeur'},
+    {type:'note', text:"Les élèves de première année ne sont pas autorisés à apporter leur propre balai : l'École des Buttes-Chaumont dispose de son propre aspirateur automatique."},
+    {type:'mischief', text:'Méfait accompli\u00a0!'}
+  ]
+};
+const INK = '#5b1f1a';
+const FONT = '"Cedarville Cursive", "Snell Roundhand", "Apple Chancery", cursive';
+const FONT_MAIN = 'Cedarville Cursive';
+
+/* ===== Utilitaires ===== */
+const $ = id => document.getElementById(id);
+const RM = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LOW = !!(navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+function readParam(key){
+  const fromUrl = u => {
+    try { const x = new URL(u); return x.searchParams.get(key) || new URLSearchParams(x.hash.slice(1)).get(key); }
+    catch(e){ return null; }
+  };
+  let v = fromUrl(location.href);
+  if (!v && key === 'n' && location.hash && location.hash.indexOf('=') < 0) { try { v = decodeURIComponent(location.hash.slice(1)); } catch(e){} }
+  if (!v && document.referrer) v = fromUrl(document.referrer);
+  if (!v) return null;
+  v = v.replace(/[\u0000-\u001f<>&"']/g, '').replace(/\+/g, ' ').trim().slice(0, 28);
+  return v || null;
+}
+
+function initialsFrom(name){
+  const forced = readParam('i');
+  if (forced) return forced.replace(/[^\p{L}]/gu, '').slice(0, 3).toUpperCase();
+  return name ? name.trim().charAt(0).toUpperCase() : '';
+}
+
+/* ===== Texture papier procédurale (raccordable) ===== */
+function makeTile(base, seed){
+  const s = 256, c = document.createElement('canvas'); c.width = c.height = s;
+  const x = c.getContext('2d'), rnd = mulberry32(seed);
+  x.fillStyle = `rgb(${base.join(',')})`; x.fillRect(0, 0, s, s);
+  for (let i = 0; i < 28; i++){
+    const cx = rnd()*s, cy = rnd()*s, r = 18 + rnd()*72, dark = rnd() < .62;
+    const col = dark ? '120,82,38' : '255,248,226', a = (dark ? .07 : .09)*rnd() + .02;
+    for (const ox of [-s, 0, s]) for (const oy of [-s, 0, s]){
+      const g = x.createRadialGradient(cx+ox, cy+oy, 0, cx+ox, cy+oy, r);
+      g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`);
+      x.fillStyle = g; x.fillRect(cx+ox-r, cy+oy-r, 2*r, 2*r);
+    }
+  }
+  x.strokeStyle = 'rgba(110,78,38,.08)'; x.lineWidth = .6;
+  for (let i = 0; i < 70; i++){
+    const x0 = rnd()*s, y0 = rnd()*s, a = rnd()*Math.PI, l = 4 + rnd()*14;
+    x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0 + Math.cos(a)*l, y0 + Math.sin(a)*l); x.stroke();
+  }
+  const d = x.getImageData(0, 0, s, s), p = d.data;
+  for (let i = 0; i < p.length; i += 4){ const n = (rnd() - .5)*16; p[i] += n; p[i+1] += n; p[i+2] += n; }
+  x.putImageData(d, 0, 0);
+  return c;
+}
+
+/* ===== Cachet de cire original ===== */
+function sealSVG(id, ini){
+  const rnd = mulberry32(11), N = 22, pts = [];
+  for (let i = 0; i < N; i++){ const a = i/N*Math.PI*2, r = 44 + (rnd() - .5)*7; pts.push([50 + Math.cos(a)*r, 50 + Math.sin(a)*r]); }
+  const mid = (a, b) => [(a[0]+b[0])/2, (a[1]+b[1])/2], f = v => v.toFixed(1);
+  const m0 = mid(pts[N-1], pts[0]); let d = `M${f(m0[0])} ${f(m0[1])}`;
+  for (let i = 0; i < N; i++){ const p = pts[i], m = mid(p, pts[(i+1)%N]); d += ` Q${f(p[0])} ${f(p[1])} ${f(m[0])} ${f(m[1])}`; }
+  let star = '';
+  for (let i = 0; i < 10; i++){ const a = -Math.PI/2 + i*Math.PI/5, r = i%2 ? 2.4 : 6; star += (i ? 'L' : 'M') + f(64 + Math.cos(a)*r) + ' ' + f(39 + Math.sin(a)*r); }
+  star += 'Z';
+  const fs = ini.length >= 3 ? 23 : ini.length === 2 ? 30 : 40;
+  const txt = (dx, dy, fill, op) => `<text x="${50 + dx}" y="${50 + dy}" text-anchor="middle" dominant-baseline="central" font-family="'${FONT_MAIN}',cursive" font-size="${Math.round(fs*1.25)}" letter-spacing="${ini.length > 1 ? -1 : 0}" fill="${fill}" opacity="${op}">${ini}</text>`;
+  const emblem = ini
+    ? txt(.9, 1.2, '#c4554a', .55) + txt(0, 0, '#5e1110', .95)
+    : `<circle cx="47" cy="52" r="17" fill="#6b1413" mask="url(#m${id})"/><path d="${star}" fill="#6b1413"/>`;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><defs>
+<radialGradient id="g${id}" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#b8443a"/><stop offset=".5" stop-color="#8b1d1a"/><stop offset="1" stop-color="#560e0d"/></radialGradient>
+<mask id="m${id}"><rect width="100" height="100" fill="#fff"/><circle cx="55" cy="45" r="15" fill="#000"/></mask></defs>
+<path d="${d}" fill="url(#g${id})"/>
+<circle cx="50" cy="50" r="31" fill="none" stroke="#5a0f0e" stroke-width="3" opacity=".55"/>
+<circle cx="50" cy="50" r="28" fill="none" stroke="#d06a5c" stroke-width=".8" opacity=".45"/>
+${emblem}</svg>`;
+}
+
+/* ===== Éléments ===== */
+const scene = $('scene'), env = $('env'), flap = $('flap'), flapIn = $('flapIn');
+const sealL = $('sealL'), sealR = $('sealR'), letterWrap = $('letterWrap'), letter = $('letter');
+const panels = [$('p0'), $('p1'), $('p2')], canv = panels.map(p => p.querySelector('canvas'));
+const lshadow = $('lshadow'), sig = $('sig'), fx = $('fx'), sr = $('sr');
+const off = document.createElement('canvas'), offCtx = off.getContext('2d');
+const bg = document.createElement('canvas'), bgCtx = bg.getContext('2d');
+
+let W, H, ph, EW, EH, dpr, SW, SH, cx, cy, finalY;
+let layout = [], totalChars = 0, curChars = 0, state = 'boot', flyTl = null, floatTw = null, writeTw = null;
+let tilePaper, tileIn, sigBox = null, readOnce = false, TOKENS = {};
+
+/* ===== Mise en page ===== */
+function wrapText(ctx, text, maxW){
+  const words = text.split(/\s+/), lines = []; let cur = '';
+  for (const w of words){ const t = cur ? cur + ' ' + w : w; if (ctx.measureText(t).width > maxW && cur){ lines.push(cur); cur = w; } else cur = t; }
+  if (cur) lines.push(cur); return lines;
+}
+
+function fillTokens(t){
+  return t.replace(/\{(\w+)\}/g, (m, k) => (k in TOKENS ? TOKENS[k] : m)).replace(/\s{2,}/g, ' ').replace(/\s+,/g, ',').trim();
+}
+
+function layoutAt(s){
+  const c = offCtx, m = Math.round(W*.1), maxW = W - 2*m, rnd = mulberry32(42);
+  const F = size => `${size}px ${FONT}`;
+  const bS = W*.064*s, tS = W*.095*s, nS = W*.08*s, smS = W*.054*s, LH = 1.34;
+  const items = []; let y = m*.7, sig = null;
+  const add = (text, font, size, x, yy, align) => {
+    c.font = font; const w = c.measureText(text).width, sp = c.measureText(' ').width;
+    const lx = align === 'center' ? x - w/2 : align === 'right' ? x - w : x;
+    const words = []; let wx = lx + (rnd() - .5)*size*.15;
+    for (const t of text.split(' ')){
+      words.push({t, x:wx, dy:(rnd() - .5)*size*.05, rot:(rnd() - .5)*.008, a:.86 + rnd()*.12});
+      wx += c.measureText(t).width + sp;
+    }
+    items.push({text, font, lx, y:yy, w, words});
+  };
+  const block = (text, size, wt, align, o) => {
+    o = o || {}; const ind = o.indent || 0, font = F(size, wt);
+    c.font = font;
+    wrapText(c, text, maxW - ind).forEach((l, i) => {
+      y += size*LH;
+      if (i === 0 && o.marker) add(o.marker, font, size, m, y, 'left');
+      const x = align === 'center' ? W/2 : align === 'right' ? W - m : m + ind;
+      add(l, font, size, x, y, align);
+    });
+    y += size*(o.gap || 0);
+  };
+  for (const b of INVITATION.letter){
+    const t = fillTokens(b.text);
+    switch (b.type){
+      case 'school': block(t, tS, 600, 'center', {gap:.4}); break;
+      case 'director': block(t, bS, 600, 'center', {gap:0}); break;
+      case 'titles': block(t, smS, 500, 'center', {gap:1.4}); break;
+      case 'salut': block(t, nS, 600, 'left', {gap:.35}); break;
+      case 'p': block(t, bS, 500, 'left', {gap:.7}); break;
+      case 'sub': block(t, bS, 600, 'left', {gap:.15}); break;
+      case 'item': { c.font = F(bS); const ind = c.measureText('- ').width;
+        block(t, bS, 500, 'left', {indent:ind, marker:'-', gap:.3}); break; }
+      case 'closing': y += bS*.5; block(t, bS, 500, 'left', {gap:.1}); break;
+      case 'signature': block(t, nS, 600, 'right', {gap:-.1}); break;
+      case 'role': block(t, smS, 500, 'right', {gap:1}); break;
+      case 'note': block(t, smS, 500, 'left', {gap:.5}); break;
+      case 'mischief': { block(t, nS, 600, 'right', {gap:0});
+        const it = items[items.length - 1]; sig = {x:it.lx - 10, y:it.y - nS*.95, w:it.w + 20, h:nS*1.3}; break; }
+    }
+  }
+  return {items, height:y + m*.6, sig};
+}
+
+function inkBlot(c, x, y, r, seed){
+  const rnd = mulberry32(seed), blob = (bx, by, br, n) => {
+    c.beginPath();
+    for (let i = 0; i <= n; i++){
+      const a = i/n*Math.PI*2, rr = br*(.75 + rnd()*.45);
+      const px = bx + Math.cos(a)*rr, py = by + Math.sin(a)*rr;
+      if (i) c.lineTo(px, py); else c.moveTo(px, py);
+    }
+    c.closePath(); c.fill();
+  };
+  c.save();
+  const halo = c.createRadialGradient(x, y, r*.5, x, y, r*2.6);
+  halo.addColorStop(0, 'rgba(91,31,26,.22)'); halo.addColorStop(1, 'rgba(91,31,26,0)');
+  c.fillStyle = halo; c.fillRect(x - r*3, y - r*3, r*6, r*6);
+  c.fillStyle = INK; c.globalAlpha = .85; blob(x, y, r, 14);
+  c.globalAlpha = .75;
+  for (let k = 0; k < 4; k++){
+    const a = rnd()*Math.PI*2, d = r*(1.6 + rnd()*1.8);
+    blob(x + Math.cos(a)*d, y + Math.sin(a)*d, r*(.12 + rnd()*.2), 7);
+  }
+  c.restore();
+}
+
+function paintBg(){
+  const c = bgCtx;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, bg.width, bg.height);
+  c.setTransform(bg.width/W, 0, 0, bg.height/H, 0, 0);
+  c.fillStyle = c.createPattern(tilePaper, 'repeat'); c.fillRect(0, 0, W, H);
+  const g = c.createRadialGradient(W/2, H*.45, Math.min(W, H)*.25, W/2, H/2, Math.max(W, H)*.72);
+  g.addColorStop(0, 'rgba(120,80,35,0)'); g.addColorStop(1, 'rgba(105,65,25,.32)');
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  for (const y of [ph, 2*ph]){
+    c.fillStyle = 'rgba(90,60,25,.12)'; c.fillRect(0, y - 1.5, W, 1.5);
+    c.fillStyle = 'rgba(255,250,235,.28)'; c.fillRect(0, y, W, 1);
+  }
+  inkBlot(c, W*.9, H*.07, W*.016, 3);
+  inkBlot(c, W*.06, H*.62, W*.011, 8);
+}
+
+function paint(chars){
+  curChars = chars;
+  const c = offCtx;
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, off.width, off.height); c.drawImage(bg, 0, 0);
+  c.setTransform(off.width/W, 0, 0, off.height/H, 0, 0); c.textBaseline = 'alphabetic'; c.textAlign = 'left'; c.fillStyle = INK;
+  let left = chars;
+  for (const it of layout){
+    if (left <= 0) break;
+    let n = Math.min(it.text.length, left); left -= it.text.length;
+    c.font = it.font;
+    for (const wd of it.words){
+      if (n <= 0) break;
+      c.save(); c.globalAlpha = wd.a; c.translate(wd.x, it.y + wd.dy); c.rotate(wd.rot);
+      c.fillText(wd.t.slice(0, n), 0, 0); c.restore();
+      n -= wd.t.length + 1;
+    }
+  }
+  c.globalAlpha = 1;
+  const h3 = off.height/3;
+  canv.forEach((cv, i) => { const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.drawImage(off, 0, i*h3, off.width, h3, 0, 0, cv.width, cv.height); });
+}
+
+function applyLayout(){
+  SW = scene.clientWidth; SH = scene.clientHeight;
+  dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const maxH = SH - 28;
+  W = Math.max(200, Math.floor(Math.min(SW*.9, 460, maxH/1.15)));
+  let sc = 1, L = layoutAt(sc);
+  const h = Math.min(Math.max(L.height, W*1.42), maxH);
+  while (L.height > h && sc > .4){ sc *= .96; L = layoutAt(sc); }
+  ph = Math.ceil(h/3); H = ph*3;
+  letter.dataset.body = (W*.064*sc).toFixed(1);
+  layout = L.items; sigBox = L.sig; totalChars = layout.reduce((a, i) => a + i.text.length, 0);
+  EW = Math.round(W*1.06); EH = Math.round(ph*1.16);
+  cx = SW/2; cy = SH/2; finalY = 0;
+  const rs = document.documentElement.style;
+  rs.setProperty('--env-w', EW + 'px'); rs.setProperty('--env-h', EH + 'px');
+  letter.style.width = W + 'px'; letter.style.height = H + 'px';
+  panels.forEach((el, i) => { el.style.top = (i*ph) + 'px'; el.style.height = ph + 'px'; });
+  const pw = Math.round(W*dpr), pH = Math.round(ph*dpr);
+  canv.forEach(c => { c.width = pw; c.height = pH; });
+  off.width = bg.width = pw; off.height = bg.height = pH*3;
+  paintBg(); paint(curChars);
+  Object.assign(sig.style, {left:sigBox.x + 'px', top:sigBox.y + 'px', width:sigBox.w + 'px', height:sigBox.h + 'px'});
+}
+
+function setFolded(){
+  gsap.set(panels[0], {rotationX:-180, z:1});
+  gsap.set(panels[2], {rotationX:180, z:2});
+  gsap.set(lshadow, {top:ph, height:ph});
+}
+
+function setClip(){
+  const L = cx - EW/2, T = cy - EH/2;
+  letterWrap.style.clipPath = `polygon(0px 0px, ${SW}px 0px, ${SW}px ${T}px, ${L + EW}px ${T}px, ${L + EW*.535}px ${T + EH*.507}px, ${cx}px ${T + EH*.47}px, ${L + EW*.465}px ${T + EH*.507}px, ${L}px ${T}px, 0px ${T}px)`;
+}
+
+/* ===== Séquences ===== */
+function flyIn(){
+  state = 'flying';
+  if (RM){
+    gsap.set(env, {opacity:0, x:0, y:0, rotationY:0});
+    flyTl = gsap.timeline({onComplete:idle}).to(env, {opacity:1, duration:.6});
+    return;
+  }
+  gsap.set(env, {opacity:1, x:-SW*.75, y:-SH*.55, rotation:-35, rotationY:-720, rotationX:25, scale:.55});
+  const D = 3.4;
+  flyTl = gsap.timeline({onComplete:idle});
+  flyTl.to(env, {keyframes:[
+    {x:SW*.28, y:-SH*.22, rotation:18, rotationX:-15, scale:.8, duration:D*.35, ease:'sine.inOut'},
+    {x:-SW*.18, y:SH*.12, rotation:-12, rotationX:12, scale:.95, duration:D*.33, ease:'sine.inOut'},
+    {x:0, y:0, rotation:0, rotationX:0, scale:1, duration:D*.32, ease:'back.out(1.4)'}
+  ]}, 0);
+  flyTl.to(env, {rotationY:0, duration:D, ease:'power2.out'}, 0);
+}
+
+function idle(){
+  state = 'idle';
+  if (!RM) floatTw = gsap.to(env, {y:-8, rotation:1.5, duration:1.8, yoyo:true, repeat:-1, ease:'sine.inOut'});
+}
+
+function openEnvelope(){
+  if (state !== 'idle' && state !== 'flying') return;
+  if (flyTl) flyTl.progress(1);
+  if (floatTw) floatTw.kill();
+  state = 'opening';
+  env.setAttribute('aria-hidden', 'true'); env.removeAttribute('tabindex');
+  const f = RM ? .35 : 1;
+  const tl = gsap.timeline();
+  tl.to(env, {y:0, rotation:0, duration:.25*f});
+  tl.to(env, {rotationY:180, duration:.7*f, ease:'power2.inOut'});
+  if (!RM) tl.to(env, {keyframes:{x:[0,-6,7,-8,6,-4,0], rotation:[0,-3,3,-4,3,-1,0]}, duration:.55, ease:'none'});
+  tl.to(sealL, {x:-26, y:14, rotation:-40, opacity:0, duration:.6, ease:'power2.out'});
+  tl.to(sealR, {x:26, y:18, rotation:45, opacity:0, duration:.6, ease:'power2.out'}, '<');
+  tl.set(flapIn, {opacity:1}, '-=.35');
+  if (!RM){
+    tl.to(flap, {rotationX:100, duration:.16, ease:'power2.out'}, '-=.35');
+    tl.to(flap, {rotationX:15, duration:.13, ease:'power2.in'});
+    tl.to(env, {scale:1.06, duration:.1, yoyo:true, repeat:1}, '<');
+    tl.to(flap, {rotationX:130, duration:.16, ease:'power2.out'});
+    tl.to(flap, {rotationX:25, duration:.13, ease:'power2.in'});
+  }
+  tl.to(flap, {rotationX:180, duration:.45*f, ease:'power2.out'});
+  tl.add(() => { setClip(); gsap.set(letter, {opacity:1, x:0, y:ph/2 - EH*.12, scale:1, rotation:0}); });
+  tl.to(letter, {y:-EH/2 - ph/2 - 6, duration:.8*f, ease:'power2.out'});
+  tl.add(() => { letterWrap.style.clipPath = 'none'; });
+  tl.to(env, {y:SH*.9, rotation:22, opacity:0, duration:.9*f, ease:'power2.in'});
+  tl.to(letter, {y:finalY, duration:.8*f, ease:'power2.inOut'}, '<');
+  tl.add(() => unfold(startWriting));
+}
+
+function unfold(done){
+  const d = RM ? .3 : .8;
+  const tl = gsap.timeline({onComplete:done});
+  tl.to(panels[2], {rotationX:0, duration:d, ease:'power2.inOut'});
+  tl.to(lshadow, {height:ph*2, duration:d, ease:'power2.inOut'}, '<');
+  tl.to(panels[0], {rotationX:0, duration:d, ease:'power2.inOut'}, `-=${d*.3}`);
+  tl.to(lshadow, {top:0, height:H, duration:d, ease:'power2.inOut'}, '<');
+}
+
+function letterPlainText(){
+  return layout.map(i => i.text).join(' ');
+}
+
+function startWriting(){
+  state = 'writing';
+  letter.style.pointerEvents = 'auto';
+  sr.textContent = letterPlainText();
+  const o = {c:0}, dur = (RM || readOnce) ? .01 : Math.min(7, totalChars*.028);
+  writeTw = gsap.to(o, {c:totalChars, duration:dur, ease:'none',
+    onUpdate:() => paint(Math.floor(o.c)),
+    onComplete:() => { paint(totalChars); state = 'reading'; readOnce = true; sig.style.pointerEvents = 'auto'; }});
+}
+
+letter.addEventListener('click', () => { if (state === 'writing' && writeTw) writeTw.progress(1); });
+
+function mischief(){
+  if (state !== 'reading') return;
+  state = 'shattering';
+  sig.style.pointerEvents = 'none';
+  gsap.to(letter, {keyframes:{x:[0,-3,4,-2,0]}, duration:RM ? .01 : .25, onComplete:shatter});
+}
+
+/* ===== Autodestruction en fragments de papier ===== */
+function makePieces(r){
+  const cols = RM ? 4 : (LOW ? 6 : 7), rows = Math.max(4, Math.round(cols*H/W));
+  const rnd = Math.random, cw = W/cols, rh = H/rows, V = [];
+  for (let j = 0; j <= rows; j++){ V[j] = [];
+    for (let i = 0; i <= cols; i++){
+      let x = i*cw, y = j*rh;
+      if (i > 0 && i < cols) x += (rnd() - .5)*cw*.7;
+      if (j > 0 && j < rows) y += (rnd() - .5)*rh*.7;
+      V[j][i] = [x, y];
+    }
+  }
+  const polys = [];
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++){
+    const a = V[j][i], b = V[j][i+1], c = V[j+1][i+1], d = V[j+1][i];
+    if (rnd() < .5){ if (rnd() < .5) polys.push([a,b,c], [a,c,d]); else polys.push([a,b,d], [b,c,d]); }
+    else polys.push([a,b,c,d]);
+  }
+  const kx = r.width/W, ky = r.height/H, ox = r.left + r.width/2, oy = r.top + r.height/2;
+  return polys.map(pts => {
+    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+    for (const [x, y] of pts){ minx = Math.min(minx, x); miny = Math.min(miny, y); maxx = Math.max(maxx, x); maxy = Math.max(maxy, y); }
+    const bw = maxx - minx, bh = maxy - miny, cv = document.createElement('canvas');
+    cv.width = Math.max(1, Math.ceil(bw*dpr)); cv.height = Math.max(1, Math.ceil(bh*dpr));
+    const x = cv.getContext('2d'); x.scale(dpr, dpr); x.translate(-minx, -miny);
+    x.beginPath(); pts.forEach((p, k) => k ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1])); x.closePath();
+    x.save(); x.clip(); x.drawImage(off, 0, 0, off.width, off.height, 0, 0, W, H);
+    x.lineWidth = 1.4; x.strokeStyle = 'rgba(255,246,222,.75)'; x.stroke(); x.restore();
+    const px = r.left + (minx + bw/2)*kx, py = r.top + (miny + bh/2)*ky;
+    const dx = (px - ox)/r.width, dy = (py - oy)/r.height, dist = Math.hypot(dx, dy);
+    return {c:cv, w:bw*kx, h:bh*ky, x:px, y:py,
+      vx:dx*9 + (rnd() - .5)*3, vy:-2.5 - rnd()*3.5 + dy*4,
+      rot:0, vr:(rnd() - .5)*.14, flip:0, vf:.04 + rnd()*.12, fq:2 + rnd()*3, ph:rnd()*6.28,
+      delay:dist*.45, fadeAt:dist*.45 + .35 + rnd()*.6, fadeDur:.8 + rnd()*.7};
+  });
+}
+
+function shatter(){
+  const r = letter.getBoundingClientRect();
+  const pieces = makePieces(r);
+  fx.width = Math.round(innerWidth*dpr); fx.height = Math.round(innerHeight*dpr);
+  const c = fx.getContext('2d');
+  gsap.set(letter, {opacity:0}); letter.style.pointerEvents = 'none';
+  const t0 = performance.now(); let last = t0;
+  function frame(now){
+    const t = (now - t0)/1000, dt = Math.min(3, (now - last)/16.67); last = now;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, innerWidth, innerHeight);
+    let alive = 0;
+    for (const p of pieces){
+      if (t >= p.delay){
+        p.vx += Math.sin(t*p.fq + p.ph)*.12*dt; p.vy += .1*dt;
+        const k = Math.pow(.99, dt); p.vx *= k; p.vy *= k;
+        p.x += p.vx*dt; p.y += p.vy*dt; p.rot += p.vr*dt; p.flip += p.vf*dt;
+      }
+      const life = (t - p.fadeAt)/p.fadeDur, a = life < 0 ? 1 : 1 - life;
+      if (a <= 0) continue;
+      alive++;
+      const sc = life < 0 ? 1 : 1 - life*.5;
+      c.save(); c.globalAlpha = a; c.translate(p.x, p.y); c.rotate(p.rot);
+      c.scale(sc, sc*Math.cos(p.flip)); c.drawImage(p.c, -p.w/2, -p.h/2, p.w, p.h); c.restore();
+    }
+    if (alive && t < 5) requestAnimationFrame(frame);
+    else { c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, fx.width, fx.height); state = 'gone'; setTimeout(returnEnvelope, 500); }
+  }
+  requestAnimationFrame(frame);
+}
+
+function returnEnvelope(){
+  setFolded(); gsap.set(letter, {x:0, y:0, opacity:0});
+  gsap.set([sealL, sealR], {x:0, y:0, rotation:0, opacity:1});
+  gsap.set(flap, {rotationX:0}); gsap.set(flapIn, {opacity:0});
+  env.removeAttribute('aria-hidden'); env.setAttribute('tabindex', '0');
+  flyIn();
+}
+
+/* ===== Événements ===== */
+env.addEventListener('click', openEnvelope);
+env.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openEnvelope(); } });
+sig.addEventListener('click', e => { e.stopPropagation(); mischief(); });
+let rt = null;
+function onResize(){
+  if (!['idle', 'reading', 'gone', 'flying'].includes(state)){ rt = setTimeout(onResize, 300); return; }
+  applyLayout();
+  if (state === 'reading') gsap.set(letter, {y:finalY});
+}
+addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(onResize, 180); });
+
+/* ===== Démarrage ===== */
+async function fontsReady(){
+  if (!document.fonts || !document.fonts.load) return;
+  try {
+    await Promise.race([
+      Promise.all([`32px "${FONT_MAIN}"`].map(f => document.fonts.load(f))),
+      new Promise(r => setTimeout(r, 2500))
+    ]);
+  } catch(e){}
+}
+
+async function boot(){
+  const D = INVITATION.defaults || {}, hasParams = !!(readParam('n') || readParam('nom'));
+  const name = readParam('n') || (hasParams ? null : D.n) || null;
+  const nom = readParam('nom') || (hasParams ? null : D.nom) || '';
+  const g = ((readParam('g') || (hasParams ? '' : D.g) || 'f').toLowerCase().charAt(0) === 'm') ? 'm' : 'f';
+  const ini = initialsFrom(name);
+  TOKENS = {prenom:name || '', nom, civ:g === 'f' ? 'Madame' : 'Monsieur', cher:g === 'f' ? 'Chère' : 'Cher', e:g === 'f' ? 'e' : '', sorcier:g === 'f' ? 'sorcière' : 'sorcier'};
+  $('addrName').textContent = INVITATION.envelopePrefix + ' ' + (name || INVITATION.envelopeDefault);
+  const al = $('addrLines');
+  for (const l of INVITATION.envelopeLines){ const d = document.createElement('div'); d.className = 'addr-line'; d.textContent = l; al.appendChild(d); }
+  sealL.innerHTML = sealSVG('L', ini); sealR.innerHTML = sealSVG('R', ini);
+  tilePaper = makeTile([231, 214, 176], 7); tileIn = makeTile([205, 180, 135], 19);
+  const rs = document.documentElement.style;
+  rs.setProperty('--tile', `url(${tilePaper.toDataURL()})`); rs.setProperty('--tile-in', `url(${tileIn.toDataURL()})`);
+  await fontsReady();
+  applyLayout();
+  if (!window.gsap){
+    paint(totalChars); env.style.display = 'none';
+    letter.style.opacity = 1; letter.style.pointerEvents = 'auto'; sig.style.pointerEvents = 'auto';
+    sig.onclick = () => { letter.style.transition = 'opacity .8s'; letter.style.opacity = 0; };
+    return;
+  }
+  setFolded();
+  flyIn();
+}
+boot();
+})();
+</script>
+</body>
+</html>
